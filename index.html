@@ -1,26 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Lab 9</title>
 
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({ 
+      token: "3fe895347fd244ad856b9714119ca210"
+    });
+  </script>
+
   <style>
-    button {
-      margin: 3px;
-    }
-
-    button:hover {
-      cursor: pointer;
-    }
-
-    #first-num,
-    #second-num {
-      width: 60px;
-    }
-
+    button { margin: 3px; }
+    button:hover { cursor: pointer; }
+    #first-num, #second-num { width: 60px; }
     output {
       border: 1px solid gray;
       display: block;
@@ -29,11 +25,7 @@
       padding: 5px;
       width: 240px;
     }
-
-    main {
-      width: 800px;
-    }
-
+    main { width: 800px; }
     #error-btns {
       column-gap: 5px;
       display: flex;
@@ -41,8 +33,7 @@
       margin-top: 30px;
       row-gap: 5px;
     }
-
-    #error-btns>* {
+    #error-btns > * {
       padding: 8px 2px;
       width: 122px;
     }
@@ -88,21 +79,111 @@
   </main>
 
   <script>
-    let form = document.querySelector('form');
-    form.addEventListener('submit', e => {
+    class CustomError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = "CustomError";
+      }
+    }
+
+    let form = document.querySelector("form");
+    form.addEventListener("submit", e => {
       e.preventDefault();
-      let output = document.querySelector('output');
-      let firstNum = document.querySelector('#first-num').value;
-      let secondNum = document.querySelector('#second-num').value;
-      let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+      let output = document.querySelector("output");
+      let firstNum = document.querySelector("#first-num").value;
+      let secondNum = document.querySelector("#second-num").value;
+      let operator = document.querySelector("#operator").value;
+
+      try {
+        if (!firstNum || !secondNum || isNaN(firstNum) || isNaN(secondNum)) {
+          throw new CustomError("Inputs must be valid numbers.");
+        }
+
+        if (!["+", "-", "*", "/"].includes(operator)) {
+          throw new CustomError("Invalid operator selected.");
+        }
+
+        const result = eval(`${firstNum} ${operator} ${secondNum}`);
+        if (!isFinite(result)) {
+          throw new CustomError("Math error: division by zero or invalid result.");
+        }
+
+        output.textContent = result;
+
+      } catch (err) {
+        if (err instanceof CustomError) {
+          console.error(`[CustomError]: ${err.message}`);
+          output.textContent = "Error: " + err.message;
+        } else {
+          console.error(`[UnknownError]:`, err);
+          output.textContent = "Unexpected Error.";
+        }
+      } finally {
+        console.log("Calculator attempted with:", firstNum, operator, secondNum);
+      }
     });
 
-    let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
+    let errorBtns = Array.from(document.querySelectorAll("#error-btns > button"));
 
-    // Start your code here
-    // You may move this JS to another file if you wish
+    errorBtns.forEach((btn, index) => {
+      btn.addEventListener("click", () => {
+        const firstNum = document.querySelector("#first-num").value;
+        const secondNum = document.querySelector("#second-num").value;
+        const operator = document.querySelector("#operator").value;
+
+        try {
+          if (index < 14 && (isNaN(firstNum) || isNaN(secondNum))) {
+            throw new Error("Please enter valid numbers in the calculator.");
+          }
+
+          const data = {
+            firstNum: Number(firstNum),
+            secondNum: Number(secondNum),
+            operator: operator,
+            expression: `${firstNum} ${operator} ${secondNum}`,
+            result: eval(`${firstNum} ${operator} ${secondNum}`)
+          };
+
+          switch (index) {
+            case 0: console.log("Console Log: ", data); break;
+            case 1: console.error("Console Error: Something went wrong", data); break;
+            case 2: console.count("Console Count"); break;
+            case 3: console.warn("Console Warn: Check values →", data); break;
+            case 4: console.assert(data.result > 0, "Result not positive", data); break;
+            case 5: console.clear(); break;
+            case 6: console.dir(data); break;
+            case 7: console.dirxml(document.querySelector("form")); break;
+            case 8: console.group("Grouped Console Output");
+                    console.log("First:", data.firstNum);
+                    console.log("Second:", data.secondNum);
+                    console.log("Result:", data.result);
+                    break;
+            case 9: console.groupEnd(); break;
+            case 10: console.table([data]); break;
+            case 11: console.time("Timer"); break;
+            case 12: console.timeEnd("Timer"); break;
+            case 13: console.trace("Trace execution"); break;
+            case 14: unknown(); 
+          }
+
+        } catch (err) {
+          console.error("Caught error:", err.message);
+        } finally {
+          console.log("Console demo attempted with:", { firstNum, secondNum, operator });
+        }
+      });
+    });
+
+    window.onerror = function (message, source, lineno, colno, error) {
+      console.log("⚠️ A global error was caught!");
+      console.log("Message:", message);
+      console.log("Source:", source);
+      console.log("Line:", lineno, "Column:", colno);
+      console.log("Error object:", error);
+      return true;
+    };
+
+    TrackJS && TrackJS.track("Testing TrackJS!");
   </script>
 </body>
-
 </html>
